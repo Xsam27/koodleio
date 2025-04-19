@@ -1,54 +1,51 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Base colors */
+    --background: 252 100% 99%;
+    --foreground: 250 10% 25%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 250 10% 25%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 250 10% 25%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary - Purple */
+    --primary: 254 83% 75%;  /* #9b87f5 */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Secondary - Soft Blue */
+    --secondary: 213 87% 91%; /* #D3E4FD */
+    --secondary-foreground: 250 10% 25%;
 
-    --muted: 210 40% 96.1%;
+    --muted: 251 100% 97%; /* #F1F0FB */
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 334 100% 94%; /* #FFDEE2 */
+    --accent-foreground: 250 10% 25%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 254 83% 92%;
+    --input: 254 83% 92%;
+    --ring: 254 83% 75%;
 
-    --radius: 0.5rem;
+    --radius: 1rem;
 
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 252 100% 99%;
+    --sidebar-foreground: 250 10% 25%;
+    --sidebar-primary: 254 83% 75%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 334 100% 94%;
+    --sidebar-accent-foreground: 250 10% 25%;
+    --sidebar-border: 254 83% 92%;
+    --sidebar-ring: 254 83% 75%;
   }
 
   .dark {
@@ -97,5 +94,96 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  /* Child-friendly animation classes */
+  .float {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  .pop-in {
+    animation: pop 0.4s ease-out forwards;
+  }
+  
+  .bounce-in {
+    animation: bounce-in 0.5s ease-out forwards;
+  }
+  
+  .celebrate {
+    animation: celebrate 0.5s ease-in-out;
+  }
+  
+  /* Hover effects for interactive elements */
+  .hover-grow {
+    @apply transition-transform duration-200;
+  }
+  
+  .hover-grow:hover {
+    @apply transform scale-105;
+  }
+  
+  .hover-bright:hover {
+    @apply brightness-105;
+  }
+  
+  /* Child-friendly UI elements */
+  .card-child {
+    @apply bg-white rounded-2xl shadow-md p-6 border-2 border-softpurple;
+  }
+  
+  .btn-child {
+    @apply rounded-full font-medium shadow-md transition-all duration-200;
+  }
+  
+  .btn-child:active {
+    @apply transform scale-95;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes bounce-in {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes celebrate {
+  0%, 100% {
+    transform: rotate(-3deg) scale(1);
+  }
+  50% {
+    transform: rotate(3deg) scale(1.05);
   }
 }

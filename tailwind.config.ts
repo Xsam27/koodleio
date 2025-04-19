@@ -52,6 +52,15 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+                // Bright Stars custom colors
+                brightpurple: '#9b87f5',
+                softpurple: '#E5DEFF',
+                softpink: '#FFDEE2',
+                softblue: '#D3E4FD',
+                softgray: '#F1F0FB',
+                skyblue: '#33C3F0',
+                brightblue: '#1EAEDB',
+                neutralgray: '#8E9196',
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
