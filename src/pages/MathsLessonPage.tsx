@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,8 +8,9 @@ import Footer from "@/components/layout/Footer";
 import { Activity, ChildProfile } from "@/types";
 import { Check, ChevronRight, Star, HelpCircle, Home, Brain } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
+import CameraView from '@/components/learning/CameraView';
+import VoiceInteraction from '@/components/learning/VoiceInteraction';
 
-// Mock data for the active child profile
 const activeProfile: ChildProfile = {
   id: "1",
   name: "Emma",
@@ -48,7 +48,6 @@ const activeProfile: ChildProfile = {
   }
 };
 
-// Mock data for the math activities
 const mathActivities: Activity[] = [
   {
     id: "math1",
@@ -122,10 +121,10 @@ const MathsLessonPage = () => {
   const [score, setScore] = useState(0);
   const [starsEarned, setStarsEarned] = useState(0);
   const [isLessonComplete, setIsLessonComplete] = useState(false);
+  const [isAISpeaking, setIsAISpeaking] = useState(false);
   
   const currentActivity = mathActivities[currentActivityIndex];
   
-  // Calculate lesson progress as a percentage
   useEffect(() => {
     const progressPercentage = (currentActivityIndex / mathActivities.length) * 100;
     setLessonProgress(progressPercentage);
@@ -134,13 +133,11 @@ const MathsLessonPage = () => {
   const handleAnswerSelect = (answer: string) => {
     setSelectedAnswer(answer);
     
-    // Check if the answer is correct
     const correct = answer === currentActivity.correctAnswer;
     setIsAnswerCorrect(correct);
     
     if (correct) {
       setScore(prevScore => prevScore + (currentActivity.difficulty * 10));
-      // Play a success sound or animation
       toast({
         title: "Correct! 🎉",
         description: "Well done! You got it right!",
@@ -156,20 +153,16 @@ const MathsLessonPage = () => {
   
   const handleNextActivity = () => {
     if (isAnswerCorrect) {
-      // Move to the next activity if answer was correct
       if (currentActivityIndex < mathActivities.length - 1) {
         setCurrentActivityIndex(prevIndex => prevIndex + 1);
         setSelectedAnswer(null);
         setIsAnswerCorrect(null);
         setShowHint(false);
         
-        // Award stars based on difficulty and not using hints
         const starsToAdd = !showHint ? currentActivity.difficulty : 1;
         setStarsEarned(prev => prev + starsToAdd);
       } else {
-        // Lesson is complete
         setIsLessonComplete(true);
-        // Award bonus stars for completing the lesson
         setStarsEarned(prev => prev + 3);
         toast({
           title: "Lesson Complete! 🌟",
@@ -177,7 +170,6 @@ const MathsLessonPage = () => {
         });
       }
     } else {
-      // If answer was wrong, allow trying again
       setSelectedAnswer(null);
       setIsAnswerCorrect(null);
     }
@@ -260,9 +252,9 @@ const MathsLessonPage = () => {
             </div>
             <span className="font-medium">{activeProfile.name}'s Maths</span>
           </div>
-          <div className="flex items-center gap-1 bg-yellow-100 px-3 py-1 rounded-full">
-            <Star size={16} className="text-yellow-500" fill="currentColor" />
-            <span className="font-medium">{starsEarned}</span>
+          <div className="flex items-center gap-4">
+            <CameraView onCameraToggle={(isOn) => console.log('Camera is:', isOn ? 'on' : 'off')} />
+            <VoiceInteraction onSpeakingChange={setIsAISpeaking} />
           </div>
         </div>
         
