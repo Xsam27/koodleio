@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,6 +13,7 @@ import ParentDashboard from "./pages/ParentDashboard";
 import ChildDashboard from "./pages/ChildDashboard";
 import AddProfilePage from "./pages/AddProfilePage";
 import LessonPage from "./pages/LessonPage";
+import MathsLessonPage from "./pages/MathsLessonPage";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +31,7 @@ const App = () => (
           <Route path="/child-dashboard" element={<ChildDashboard />} />
           <Route path="/add-profile" element={<AddProfilePage />} />
           <Route path="/lesson/:subject" element={<LessonPage />} />
+          <Route path="/lesson/maths" element={<MathsLessonPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
