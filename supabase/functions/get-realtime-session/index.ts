@@ -20,7 +20,7 @@ serve(async (req) => {
 
     const { model } = await req.json()
 
-    // Request an ephemeral token from OpenAI
+    // Request a session from OpenAI
     const response = await fetch("https://api.openai.com/v1/realtime/sessions", {
       method: "POST",
       headers: {
@@ -34,12 +34,31 @@ serve(async (req) => {
       }),
     })
 
+    if (!response.ok) {
+      const errorData = await response.text()
+      console.error('OpenAI API error:', errorData)
+      throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`)
+    }
+
     const data = await response.json()
     
-    return new Response(JSON.stringify(data), {
+    // The session response contains client_secret which we can use to create a WebSocket URL
+    if (!data.client_secret?.value) {
+      throw new Error('No client secret in OpenAI response')
+    }
+    
+    // Create WebSocket URL
+    const wsUrl = `wss://api.openai.com/v1/realtime?model=${model}`
+    
+    return new Response(JSON.stringify({ 
+      url: wsUrl,
+      client_secret: data.client_secret.value,
+      sessionData: data
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (error) {
+    console.error('Error in get-realtime-session:', error)
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

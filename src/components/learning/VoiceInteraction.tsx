@@ -16,13 +16,20 @@ const VoiceInteraction: React.FC<VoiceInteractionProps> = ({ onSpeakingChange })
   const [isConnecting, setIsConnecting] = useState(false);
   const [chat, setChat] = useState<RealtimeChat | null>(null);
   const [lastMessage, setLastMessage] = useState<string>("");
+  const [connectionError, setConnectionError] = useState<string | null>(null);
 
   const startVoiceInteraction = async () => {
     if (isConnecting) return;
     
     setIsConnecting(true);
+    setConnectionError(null);
     
     try {
+      toast({
+        title: "Starting voice chat",
+        description: "Connecting to AI tutor...",
+      });
+
       const newChat = new RealtimeChat((message) => {
         console.log('AI Response:', message);
         
@@ -48,6 +55,7 @@ const VoiceInteraction: React.FC<VoiceInteractionProps> = ({ onSpeakingChange })
       });
     } catch (error) {
       console.error('Error starting voice chat:', error);
+      setConnectionError(error instanceof Error ? error.message : 'Unknown error');
       toast({
         title: "Error",
         description: "Could not start voice chat. Please try again.",
@@ -143,6 +151,7 @@ const VoiceInteraction: React.FC<VoiceInteractionProps> = ({ onSpeakingChange })
           onClick={isListening ? stopVoiceInteraction : startVoiceInteraction}
           className="rounded-full"
           disabled={isConnecting}
+          title={isListening ? "Stop voice chat" : "Start voice chat"}
         >
           {isConnecting ? (
             <span className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
@@ -153,6 +162,14 @@ const VoiceInteraction: React.FC<VoiceInteractionProps> = ({ onSpeakingChange })
           )}
         </Button>
       </div>
+
+      {connectionError && (
+        <div className="text-xs text-red-500 ml-2">
+          {connectionError.includes("Failed to get session URL") ? 
+            "OpenAI API key may be invalid or missing" : 
+            connectionError}
+        </div>
+      )}
     </div>
   );
 };

@@ -23,13 +23,29 @@ export class RealtimeChat {
         throw error;
       }
 
-      if (!data || !data.url) {
+      if (!data || !data.url || !data.client_secret) {
         console.error('Invalid response from function:', data);
         throw new Error('Failed to get session URL');
       }
 
-      // Connect to OpenAI's realtime API using the session URL
+      console.log('Connecting to WebSocket at:', data.url);
+      console.log('With client secret:', data.client_secret);
+
+      // Connect to OpenAI's realtime API using the session URL and authorization
       this.ws = new WebSocket(data.url);
+      
+      // Add authorization header to the WebSocket connection
+      this.ws.addEventListener('open', () => {
+        console.log('WebSocket connection established');
+        
+        // Send authorization message
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+          this.ws.send(JSON.stringify({
+            type: "authorization",
+            authorization: data.client_secret
+          }));
+        }
+      });
 
       this.ws.onmessage = (event) => {
         try {
@@ -55,37 +71,34 @@ export class RealtimeChat {
       };
 
       // Set up audio recording when the connection is established
-      this.ws.onopen = async () => {
-        console.log('WebSocket connection established');
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({
-            audio: {
-              sampleRate: 24000,
-              channelCount: 1,
-              echoCancellation: true,
-              noiseSuppression: true,
-              autoGainControl: true
-            }
-          });
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            sampleRate: 24000,
+            channelCount: 1,
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          }
+        });
 
-          const audioContext = new AudioContext({ sampleRate: 24000 });
-          const source = audioContext.createMediaStreamSource(stream);
-          const processor = audioContext.createScriptProcessor(4096, 1, 1);
+        const audioContext = new AudioContext({ sampleRate: 24000 });
+        const source = audioContext.createMediaStreamSource(stream);
+        const processor = audioContext.createScriptProcessor(4096, 1, 1);
 
-          processor.onaudioprocess = (e) => {
-            if (this.ws?.readyState === WebSocket.OPEN) {
-              const inputData = e.inputBuffer.getChannelData(0);
-              this.sendAudioChunk(inputData);
-            }
-          };
+        processor.onaudioprocess = (e) => {
+          if (this.ws?.readyState === WebSocket.OPEN) {
+            const inputData = e.inputBuffer.getChannelData(0);
+            this.sendAudioChunk(inputData);
+          }
+        };
 
-          source.connect(processor);
-          processor.connect(audioContext.destination);
-        } catch (error) {
-          console.error('Error setting up audio:', error);
-          throw error;
-        }
-      };
+        source.connect(processor);
+        processor.connect(audioContext.destination);
+      } catch (error) {
+        console.error('Error setting up audio:', error);
+        throw error;
+      }
 
     } catch (error) {
       console.error('Error initializing chat:', error);
