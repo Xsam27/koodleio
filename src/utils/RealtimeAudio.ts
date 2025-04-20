@@ -2,8 +2,8 @@
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
-  'https://your-project-url.supabase.co',
-  'your-anon-key'
+  'https://dlyvaxxfheefketazsag.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRseXZheHhmaGVlZmtldGF6c2FnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUwNDQwODUsImV4cCI6MjA2MDYyMDA4NX0.wYivi2j8jRmK5-m9I6JUw-Lp8KpRCtunSBnj4RCgGTA'
 );
 
 export class RealtimeChat {
@@ -18,18 +18,31 @@ export class RealtimeChat {
         body: { model: "gpt-4o-realtime-preview-2024-12-17" }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error invoking function:', error);
+        throw error;
+      }
+
+      if (!data || !data.url) {
+        console.error('Invalid response from function:', data);
+        throw new Error('Failed to get session URL');
+      }
 
       // Connect to OpenAI's realtime API using the session URL
       this.ws = new WebSocket(data.url);
 
       this.ws.onmessage = (event) => {
-        const message = JSON.parse(event.data);
-        this.onMessage(message);
+        try {
+          const message = JSON.parse(event.data);
+          console.log('Received message:', message);
+          this.onMessage(message);
 
-        // If we receive the session.created event, send our session configuration
-        if (message.type === 'session.created') {
-          this.sendSessionConfig();
+          // If we receive the session.created event, send our session configuration
+          if (message.type === 'session.created') {
+            this.sendSessionConfig();
+          }
+        } catch (error) {
+          console.error('Error parsing message:', error);
         }
       };
 
@@ -37,8 +50,13 @@ export class RealtimeChat {
         console.error('WebSocket error:', error);
       };
 
+      this.ws.onclose = (event) => {
+        console.log('WebSocket closed:', event);
+      };
+
       // Set up audio recording when the connection is established
       this.ws.onopen = async () => {
+        console.log('WebSocket connection established');
         try {
           const stream = await navigator.mediaDevices.getUserMedia({
             audio: {
@@ -98,6 +116,7 @@ export class RealtimeChat {
       }
     };
 
+    console.log('Sending session config:', config);
     this.ws.send(JSON.stringify(config));
   }
 

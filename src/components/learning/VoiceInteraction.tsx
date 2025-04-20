@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Mic, MicOff, HelpCircle, RefreshCw, XOctagon } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
@@ -13,17 +13,28 @@ interface VoiceInteractionProps {
 const VoiceInteraction: React.FC<VoiceInteractionProps> = ({ onSpeakingChange }) => {
   const { toast } = useToast();
   const [isListening, setIsListening] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
   const [chat, setChat] = useState<RealtimeChat | null>(null);
+  const [lastMessage, setLastMessage] = useState<string>("");
 
   const startVoiceInteraction = async () => {
+    if (isConnecting) return;
+    
+    setIsConnecting(true);
+    
     try {
       const newChat = new RealtimeChat((message) => {
         console.log('AI Response:', message);
+        
         // Handle different message types from the AI
         if (message.type === 'response.audio.delta') {
           onSpeakingChange(true);
         } else if (message.type === 'response.audio.done') {
           onSpeakingChange(false);
+        } else if (message.type === 'response.audio_transcript.delta' && message.delta) {
+          setLastMessage(prev => prev + message.delta);
+        } else if (message.type === 'response.audio_transcript.done') {
+          console.log('Full transcript:', lastMessage);
         }
       });
 
@@ -42,6 +53,8 @@ const VoiceInteraction: React.FC<VoiceInteractionProps> = ({ onSpeakingChange })
         description: "Could not start voice chat. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsConnecting(false);
     }
   };
 
@@ -51,12 +64,22 @@ const VoiceInteraction: React.FC<VoiceInteractionProps> = ({ onSpeakingChange })
       setChat(null);
     }
     setIsListening(false);
+    setLastMessage("");
     onSpeakingChange(false);
     toast({
       title: "Voice chat ended",
       description: "Your AI tutor is no longer listening.",
     });
   };
+
+  // Clean up on component unmount
+  useEffect(() => {
+    return () => {
+      if (chat) {
+        chat.disconnect();
+      }
+    };
+  }, [chat]);
 
   const handleHint = () => {
     toast({
@@ -119,8 +142,15 @@ const VoiceInteraction: React.FC<VoiceInteractionProps> = ({ onSpeakingChange })
           size="icon"
           onClick={isListening ? stopVoiceInteraction : startVoiceInteraction}
           className="rounded-full"
+          disabled={isConnecting}
         >
-          {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+          {isConnecting ? (
+            <span className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
+          ) : isListening ? (
+            <MicOff className="h-4 w-4" />
+          ) : (
+            <Mic className="h-4 w-4" />
+          )}
         </Button>
       </div>
     </div>
