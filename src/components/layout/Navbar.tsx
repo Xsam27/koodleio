@@ -1,8 +1,7 @@
-
-import { useState } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LogOut, Menu, X, BookOpen, Home, UserCircle } from "lucide-react";
+import { LogOut, Menu, BookOpen, Home, UserCircle } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 interface NavbarProps {
@@ -10,10 +9,9 @@ interface NavbarProps {
 }
 
 const Navbar = ({ isParent = false }: NavbarProps) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false); // This would be from auth context in a real app
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
 
-  // Mock logout function
   const handleLogout = () => {
     setIsAuthenticated(false);
     navigate("/");
@@ -28,7 +26,7 @@ const Navbar = ({ isParent = false }: NavbarProps) => {
             className={`${isParent ? "text-brightpurple" : "text-primary"}`}
           />
           <h1 className={`text-xl font-bold ${isParent ? "text-brightpurple" : "text-primary"}`}>
-            Bright Stars
+            Koodle.io
           </h1>
         </Link>
 
@@ -102,7 +100,7 @@ const Navbar = ({ isParent = false }: NavbarProps) => {
             <div className="flex flex-col gap-6 pt-10">
               <Link to="/" className="flex items-center gap-2">
                 <BookOpen size={24} className="text-primary" />
-                <span className="font-bold text-lg">Bright Stars</span>
+                <span className="font-bold text-lg">Koodle.io</span>
               </Link>
               <nav className="flex flex-col gap-4">
                 {isAuthenticated ? (

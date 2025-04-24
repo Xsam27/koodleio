@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { BookOpen, Mail, Shield } from "lucide-react";
 
@@ -13,7 +12,7 @@ const Footer = () => {
           <div className="flex flex-col gap-4">
             <Link to="/" className="flex items-center gap-2">
               <BookOpen size={24} className="text-brightpurple" />
-              <span className="font-bold text-lg text-brightpurple">Bright Stars</span>
+              <span className="font-bold text-lg text-brightpurple">Koodle.io</span>
             </Link>
             <p className="text-sm text-neutralgray">
               Empowering children aged 5–15 with personalized, interactive learning based on the UK curriculum.
@@ -65,7 +64,7 @@ const Footer = () => {
         {/* Copyright */}
         <div className="mt-8 pt-6 border-t border-softpurple text-center">
           <p className="text-xs text-neutralgray">
-            © {currentYear} Bright Stars Learning Ltd. All rights reserved.
+            © {currentYear} Koodle.io Learning Ltd. All rights reserved.
           </p>
         </div>
       </div>

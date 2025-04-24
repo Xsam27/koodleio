@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { ArrowRight, Star, Brain, BookOpen, Trophy, Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,7 +15,7 @@ const HomePage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="flex flex-col gap-6 pop-in">
               <h1 className="text-3xl md:text-4xl font-bold text-primary">
-                Welcome to Bright Stars! 🌟
+                Welcome to Koodle.io! 🌟
               </h1>
               <p className="text-lg text-neutralgray">
                 Join us on an exciting learning adventure with fun activities, 
@@ -126,7 +125,7 @@ const HomePage = () => {
               Ready for an Amazing Learning Adventure? 🚀
             </h2>
             <p className="text-lg mb-8">
-              Join thousands of happy kids learning and having fun with Bright Stars!
+              Join thousands of happy kids learning and having fun with Koodle.io!
             </p>
             <Button 
               size="lg" 
