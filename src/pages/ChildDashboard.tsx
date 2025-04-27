@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import { BookOpen, Brain, ArrowRight } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -130,6 +130,33 @@ const insights = [
   },
 ];
 
+// Mock AI recommended activities
+const recommendedActivities = [
+  {
+    id: "ra1",
+    title: "Sentence Structure Practice",
+    subject: "English" as Subject,
+    description: "Learn how to form complete sentences with proper structure",
+    difficulty: "medium" as const,
+    estimatedTime: 15
+  },
+  {
+    id: "ra2",
+    title: "Subtraction with Pictures",
+    subject: "Maths" as Subject,
+    description: "Visual approach to subtraction using everyday objects",
+    difficulty: "easy" as const,
+    estimatedTime: 10
+  }
+];
+
+// AI personalized tip
+const aiTip = {
+  text: "Based on your recent activities, I notice you're making great progress with letter sounds. Try applying these in your reading exercises for even better results!",
+  focusArea: "Sentence Structure",
+  subject: "English" as Subject
+};
+
 // Import missing icons
 import { Award, Star, Crown } from "lucide-react";
 
@@ -168,8 +195,12 @@ const ChildDashboard = () => {
                 totalTasks={4}
               />
               
-              {/* Learning Insights */}
-              <LearningInsights insights={insights} />
+              {/* Learning Insights - Now with enhanced AI features */}
+              <LearningInsights 
+                insights={insights}
+                recommendedActivities={recommendedActivities}
+                aiTip={aiTip}
+              />
             </div>
             
             <div className="space-y-6">
@@ -279,4 +310,3 @@ const ChildDashboard = () => {
 };
 
 export default ChildDashboard;
-
