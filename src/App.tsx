@@ -14,6 +14,8 @@ import ChildDashboard from "./pages/ChildDashboard";
 import AddProfilePage from "./pages/AddProfilePage";
 import LessonPage from "./pages/LessonPage";
 import MathsLessonPage from "./pages/MathsLessonPage";
+import ParentSettings from "./pages/ParentSettings";
+import InitialAssessment from "./pages/InitialAssessment";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +32,8 @@ const App = () => (
           <Route path="/parent-dashboard" element={<ParentDashboard />} />
           <Route path="/child-dashboard" element={<ChildDashboard />} />
           <Route path="/add-profile" element={<AddProfilePage />} />
+          <Route path="/parent-settings" element={<ParentSettings />} />
+          <Route path="/initial-assessment" element={<InitialAssessment />} />
           <Route path="/lesson/:subject" element={<LessonPage />} />
           <Route path="/lesson/maths" element={<MathsLessonPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
