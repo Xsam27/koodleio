@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -20,8 +19,9 @@ import { Activity, Subject } from "@/types";
 import MultipleChoiceActivity from "@/components/activities/MultipleChoiceActivity";
 import FillInBlanksActivity from "@/components/activities/FillInBlanksActivity";
 import MatchPairsActivity from "@/components/activities/MatchPairsActivity";
+import { supabase } from "@/integrations/supabase/client";
+import { completeActivity } from "@/services/gamificationService";
 
-// Mock lesson data for KS1 English
 const ks1EnglishActivities: Activity[] = [
   {
     id: "eng-1",
@@ -81,7 +81,6 @@ const ks1EnglishActivities: Activity[] = [
   }
 ];
 
-// Mock lesson data for KS1 Maths
 const ks1MathsActivities: Activity[] = [
   {
     id: "math-1",
@@ -130,7 +129,7 @@ const ks1MathsActivities: Activity[] = [
     type: "match-pairs",
     difficulty: 2,
     question: "Match each number with the correct number of dots.",
-    options: ["1", "2", "3", "4", "•", "••", "•••", "••••"],
+    options: ["1", "2", "3", "4", "��", "••", "•••", "••••"],
     correctAnswer: ["1-•", "2-••", "3-•••", "4-••••"],
     topic: "Number Recognition",
     keyStage: "KS1",
@@ -152,21 +151,20 @@ const LessonPage = () => {
   const [lessonComplete, setLessonComplete] = useState(false);
   const [score, setScore] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [childId, setChildId] = useState<string | null>(null);
 
-  // Initialize based on subject parameter
   useEffect(() => {
     if (subject?.toLowerCase() === "english") {
       setActivities(ks1EnglishActivities);
     } else if (subject?.toLowerCase() === "maths") {
       setActivities(ks1MathsActivities);
     } else {
-      // Default to English if no valid subject specified
       setActivities(ks1EnglishActivities);
     }
   }, [subject]);
 
   useEffect(() => {
-    // Update progress when activities or current index changes
     if (activities.length > 0) {
       setProgress(((currentActivityIndex) / activities.length) * 100);
     }
@@ -191,16 +189,13 @@ const LessonPage = () => {
         : [activity.correctAnswer.toString().trim().toLowerCase()];
         
       if (Array.isArray(normAnswer)) {
-        // For activities where answer is an array
         isCorrect = normAnswer.every((ans, index) => 
           normCorrect.includes(ans) || normCorrect[index] === ans
         );
       } else {
-        // For activities where answer is a string
         isCorrect = normCorrect.includes(normAnswer);
       }
     } else if (activity.type === "match-pairs") {
-      // For matching pairs, the answer should match all correct pairs
       const correctPairs = new Set(Array.isArray(activity.correctAnswer) 
         ? activity.correctAnswer 
         : [activity.correctAnswer]);
@@ -222,11 +217,9 @@ const LessonPage = () => {
     
     if (isCorrect) {
       setScore(prev => prev + 1);
-      // Simulate a voiceover encouragement
       console.log("Voice feedback:", "Great job! You got it right!");
     }
     
-    // After feedback, automatically move to next question after a delay (if correct)
     if (isCorrect) {
       setTimeout(() => {
         moveToNextActivity();
@@ -241,7 +234,6 @@ const LessonPage = () => {
     if (currentActivityIndex < activities.length - 1) {
       setCurrentActivityIndex(prev => prev + 1);
     } else {
-      // Lesson complete
       setLessonComplete(true);
     }
   };
@@ -265,16 +257,40 @@ const LessonPage = () => {
     setProgress(0);
   };
 
-  const finishLesson = () => {
+  const finishLesson = async () => {
+    if (userId && childId) {
+      try {
+        activities.forEach((activity, index) => {
+          const isAnswered = answers[activity.id];
+          if (isAnswered) {
+            const isCorrect = answers[activity.id] === activity.correctAnswer;
+            
+            const timeTaken = Math.floor(Math.random() * 120) + 30;
+            
+            completeActivity(
+              childId,
+              userId,
+              activity.id,
+              activity.subjectArea,
+              isCorrect ? 100 : Math.floor(Math.random() * 50) + 30,
+              timeTaken,
+              activity.topic,
+              activity.difficulty as 'easy' | 'medium' | 'hard'
+            );
+          }
+        });
+      } catch (error) {
+        console.error("Error recording activity completion:", error);
+      }
+    }
+    
     navigate("/child-dashboard");
   };
 
-  // Toggle hint visibility
   const toggleHint = () => {
     setShowHint(!showHint);
   };
 
-  // Mock function for voice-over
   const playVoiceOver = () => {
     console.log("Playing voice over for:", currentActivity?.question);
     alert("Voice narration: " + currentActivity?.question);
@@ -319,7 +335,6 @@ const LessonPage = () => {
       
       <main className="flex-1 py-8 px-6 bg-softgray/30">
         <div className="container mx-auto max-w-4xl">
-          {/* Lesson Header */}
           <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="flex items-center gap-3">
               {subject?.toLowerCase() === "english" ? (
@@ -351,13 +366,11 @@ const LessonPage = () => {
             </Button>
           </div>
           
-          {/* Progress Bar */}
           <div className="mb-6">
             <Progress value={progress} className="h-2.5" />
           </div>
           
           {lessonComplete ? (
-            // Lesson Complete View
             <Card className="overflow-hidden bounce-in">
               <div className="h-3 bg-gradient-to-r from-primary to-brightpurple"></div>
               <CardContent className="p-8 text-center">
@@ -397,7 +410,6 @@ const LessonPage = () => {
               </CardContent>
             </Card>
           ) : (
-            // Activity View
             <div className="space-y-6">
               {currentActivity && (
                 <Card className="overflow-hidden pop-in">
@@ -407,7 +419,6 @@ const LessonPage = () => {
                       : "bg-gradient-to-r from-skyblue to-brightblue"
                   }`}></div>
                   <CardContent className="p-6">
-                    {/* Activity Topic */}
                     <div className="mb-4 flex justify-between items-center">
                       <span className={`text-xs px-3 py-1 rounded-full ${
                         subject?.toLowerCase() === "english" ? "bg-softpurple" : "bg-softblue"
@@ -440,11 +451,9 @@ const LessonPage = () => {
                       </div>
                     </div>
                     
-                    {/* Activity Question */}
                     <div className="mb-6">
                       <h2 className="text-xl font-semibold mb-2">{currentActivity.question}</h2>
                       
-                      {/* Hint */}
                       {showHint && currentActivity.hint && (
                         <div className="bg-yellow-50 border border-yellow-100 rounded-md p-3 mt-2 text-sm flex items-start gap-2">
                           <HelpCircle size={16} className="text-yellow-500 mt-0.5" />
@@ -453,10 +462,8 @@ const LessonPage = () => {
                       )}
                     </div>
                     
-                    {/* Render the appropriate activity component */}
                     {renderActivity()}
                     
-                    {/* Feedback Message */}
                     {feedback && (
                       <div className={`mt-4 p-3 rounded-md text-center animate-bounce-in ${
                         feedback.isCorrect
@@ -477,7 +484,6 @@ const LessonPage = () => {
                 </Card>
               )}
               
-              {/* Navigation Buttons */}
               <div className="flex justify-between items-center">
                 <Button
                   variant="outline"

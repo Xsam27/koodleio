@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,17 @@ import StreakTracker from "@/components/dashboard/StreakTracker";
 import DailyTasks from "@/components/dashboard/DailyTasks";
 import LearningInsights from "@/components/dashboard/LearningInsights";
 import LevelProgressCard from "@/components/dashboard/LevelProgressCard";
+import BadgesDisplay from "@/components/dashboard/BadgesDisplay";
+import StarsDisplay from "@/components/dashboard/StarsDisplay";
+import { supabase } from "@/integrations/supabase/client";
+import { 
+  fetchChildLevel, 
+  fetchEarnedBadgesForChild, 
+  fetchStarsForChild,
+  ChildLevel,
+  EarnedBadge,
+  Star
+} from "@/services/gamificationService";
 
 // Mock data for active child profile
 const activeProfile: ChildProfile = {
@@ -158,10 +169,47 @@ const aiTip = {
 };
 
 // Import missing icons
-import { Award, Star, Crown } from "lucide-react";
+import { Award, Star as StarIcon, Crown } from "lucide-react";
 
 const ChildDashboard = () => {
   const [profile] = useState<ChildProfile>(activeProfile);
+  const [childLevel, setChildLevel] = useState<ChildLevel | null>(null);
+  const [badges, setBadges] = useState<EarnedBadge[]>([]);
+  const [stars, setStars] = useState<Star[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
+  
+  // Fetch user and gamification data
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      
+      // Check for logged in user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
+        
+        // For demonstration purposes, we'll use the profile.id as childId
+        // In a real app, you'd fetch the active child profile
+        const childId = profile.id;
+        
+        // Fetch gamification data
+        const [levelData, badgesData, starsData] = await Promise.all([
+          fetchChildLevel(childId),
+          fetchEarnedBadgesForChild(childId),
+          fetchStarsForChild(childId)
+        ]);
+        
+        setChildLevel(levelData);
+        setBadges(badgesData);
+        setStars(starsData);
+      }
+      
+      setIsLoading(false);
+    };
+    
+    fetchData();
+  }, [profile.id]);
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -180,7 +228,9 @@ const ChildDashboard = () => {
               </div>
               <div className="text-center md:text-left">
                 <h1 className="text-2xl md:text-3xl font-bold mb-1">Hi, {profile.name}!</h1>
-                <p className="text-lg">Ready to learn something new today?</p>
+                <p className="text-lg">
+                  {childLevel ? `Level ${childLevel.current_level} ${childLevel.current_title}` : 'Ready to learn something new today?'}
+                </p>
               </div>
             </div>
           </div>
@@ -195,11 +245,16 @@ const ChildDashboard = () => {
                 totalTasks={4}
               />
               
-              {/* Learning Insights - Now with enhanced AI features */}
+              {/* Learning Insights - Now connected to Supabase */}
               <LearningInsights 
-                insights={insights}
-                recommendedActivities={recommendedActivities}
-                aiTip={aiTip}
+                childId={profile.id}
+                isLoading={isLoading}
+              />
+              
+              {/* Badges Display - New Component */}
+              <BadgesDisplay 
+                badges={badges}
+                isLoading={isLoading}
               />
             </div>
             
@@ -207,19 +262,19 @@ const ChildDashboard = () => {
               {/* Streak & Level */}
               <div className="space-y-6">
                 <StreakTracker 
-                  currentStreak={5}
-                  longestStreak={12}
-                  totalStars={42}
-                  totalBadges={3}
-                  lastActive={new Date()}
+                  childLevel={childLevel}
+                  isLoading={isLoading}
                 />
                 
                 <LevelProgressCard 
-                  currentLevel={3}
-                  levelName="Explorer"
-                  progress={65}
-                  pointsToNextLevel={45}
-                  totalPoints={180}
+                  childLevel={childLevel}
+                  isLoading={isLoading}
+                />
+                
+                <StarsDisplay 
+                  stars={stars}
+                  totalStars={childLevel?.total_stars || 0}
+                  isLoading={isLoading}
                 />
               </div>
               

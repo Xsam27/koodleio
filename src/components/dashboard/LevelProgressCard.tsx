@@ -3,29 +3,72 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Crown } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { ChildLevel } from "@/services/gamificationService";
 
 interface LevelProgressCardProps {
-  currentLevel: number;
-  levelName: string;
-  progress: number;
-  pointsToNextLevel: number;
-  totalPoints: number;
+  childLevel: ChildLevel | null;
+  isLoading?: boolean;
 }
 
 const LevelProgressCard: React.FC<LevelProgressCardProps> = ({
-  currentLevel,
-  levelName,
-  progress,
-  pointsToNextLevel,
-  totalPoints
+  childLevel,
+  isLoading = false
 }) => {
+  // Calculate progress to next level (example calculation - adjust as needed)
+  const calculateProgress = () => {
+    if (!childLevel) return 0;
+    
+    const currentLevel = childLevel.current_level;
+    const nextLevelThreshold = currentLevel * 20; // 20 stars per level
+    const previousLevelThreshold = (currentLevel - 1) * 20;
+    
+    const starsForThisLevel = childLevel.total_stars - previousLevelThreshold;
+    const starsNeededForNextLevel = nextLevelThreshold - previousLevelThreshold;
+    
+    return Math.min(100, Math.round((starsForThisLevel / starsNeededForNextLevel) * 100));
+  };
+
+  const progress = calculateProgress();
+  const pointsToNextLevel = childLevel 
+    ? (childLevel.current_level * 20) - childLevel.total_stars 
+    : 0;
+
+  if (isLoading) {
+    return (
+      <Card className="hover-grow mb-6">
+        <CardContent className="p-4">
+          <div className="animate-pulse">
+            <div className="flex items-center justify-between mb-3">
+              <div className="h-5 w-32 bg-gray-200 rounded"></div>
+              <div className="h-5 w-24 bg-gray-200 rounded"></div>
+            </div>
+            <div className="flex items-center gap-4 mb-4">
+              <div className="h-14 w-14 rounded-full bg-gray-200"></div>
+              <div className="space-y-2">
+                <div className="h-6 w-32 bg-gray-200 rounded"></div>
+                <div className="h-4 w-40 bg-gray-200 rounded"></div>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <div className="h-4 w-32 bg-gray-200 rounded"></div>
+                <div className="h-4 w-12 bg-gray-200 rounded"></div>
+              </div>
+              <div className="h-2.5 w-full bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="hover-grow mb-6">
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-medium text-lg">Your Learning Level</h3>
           <span className="text-xs bg-gray-100 py-1 px-3 rounded-full">
-            {totalPoints} total points
+            {childLevel?.total_stars || 0} total stars
           </span>
         </div>
         
@@ -35,13 +78,13 @@ const LevelProgressCard: React.FC<LevelProgressCardProps> = ({
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold">Level {currentLevel}</span>
+              <span className="text-2xl font-bold">Level {childLevel?.current_level || 1}</span>
               <span className="text-sm bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">
-                {levelName}
+                {childLevel?.current_title || "New Learner"}
               </span>
             </div>
             <p className="text-sm text-neutralgray">
-              {pointsToNextLevel} points until Level {currentLevel + 1}
+              {pointsToNextLevel > 0 ? `${pointsToNextLevel} stars until Level ${(childLevel?.current_level || 1) + 1}` : 'Maximum level reached!'}
             </p>
           </div>
         </div>

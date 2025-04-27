@@ -2,23 +2,47 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Flame, Trophy, Award, Star, Calendar } from "lucide-react";
+import { ChildLevel } from "@/services/gamificationService";
 
 interface StreakTrackerProps {
-  currentStreak: number;
-  longestStreak: number;
-  totalStars: number;
-  totalBadges: number;
-  lastActive: Date;
+  childLevel: ChildLevel | null;
+  isLoading?: boolean;
 }
 
 const StreakTracker: React.FC<StreakTrackerProps> = ({
-  currentStreak,
-  longestStreak,
-  totalStars,
-  totalBadges,
-  lastActive
+  childLevel,
+  isLoading = false
 }) => {
-  const isActiveToday = lastActive.toDateString() === new Date().toDateString();
+  const currentStreak = childLevel?.streak_days || 0;
+  const longestStreak = childLevel?.longest_streak || 0;
+  const totalStars = childLevel?.total_stars || 0;
+  const totalBadges = childLevel?.total_badges || 0;
+  
+  // Check if active today
+  const isActiveToday = childLevel?.last_activity_date ? 
+    new Date(childLevel.last_activity_date).toDateString() === new Date().toDateString() : 
+    false;
+  
+  if (isLoading) {
+    return (
+      <Card className="hover-grow mb-6">
+        <CardContent className="p-4">
+          <div className="animate-pulse">
+            <div className="h-5 w-32 bg-gray-200 rounded mb-3"></div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="flex flex-col items-center">
+                  <div className="h-12 w-12 rounded-full bg-gray-200 mb-2"></div>
+                  <div className="h-5 w-8 bg-gray-200 rounded mb-1"></div>
+                  <div className="h-3 w-16 bg-gray-200 rounded"></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
   
   return (
     <Card className="hover-grow mb-6">

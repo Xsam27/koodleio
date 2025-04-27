@@ -1,1 +1,5 @@
+
 project_id = "dlyvaxxfheefketazsag"
+
+[functions.generate-learning-insights]
+verify_jwt = true
