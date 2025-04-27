@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { BookOpen, Brain, ArrowRight } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { ChildProfile } from "@/types";
+import { ChildProfile, Subject } from "@/types";
 import ProgressSection from "@/components/dashboard/ProgressSection";
 import StreakTracker from "@/components/dashboard/StreakTracker";
 import DailyTasks from "@/components/dashboard/DailyTasks";
@@ -67,38 +67,38 @@ const dailyTasks = [
   { 
     id: "t1", 
     title: "Practice Phonics", 
-    subject: "English", 
+    subject: "English" as Subject, 
     completed: true, 
     duration: 10,
     topic: "Phonics",
-    difficulty: "easy" 
+    difficulty: "easy" as const
   },
   { 
     id: "t2", 
     title: "Addition Worksheet", 
-    subject: "Maths", 
+    subject: "Maths" as Subject, 
     completed: true, 
     duration: 15,
     topic: "Addition",
-    difficulty: "medium" 
+    difficulty: "medium" as const
   },
   { 
     id: "t3", 
     title: "Reading Exercise", 
-    subject: "English", 
+    subject: "English" as Subject, 
     completed: false, 
     duration: 20,
     topic: "Reading",
-    difficulty: "medium" 
+    difficulty: "medium" as const
   },
   { 
     id: "t4", 
     title: "Shapes Quiz", 
-    subject: "Maths", 
+    subject: "Maths" as Subject, 
     completed: false, 
     duration: 15,
     topic: "Shapes",
-    difficulty: "hard" 
+    difficulty: "hard" as const
   },
 ];
 
@@ -106,27 +106,27 @@ const dailyTasks = [
 const insights = [
   { 
     area: "Phonics", 
-    subject: "English", 
+    subject: "English" as Subject, 
     description: "Great at recognizing letter sounds", 
-    type: "strength" 
+    type: "strength" as const
   },
   { 
     area: "Counting", 
-    subject: "Maths", 
+    subject: "Maths" as Subject, 
     description: "Strong with numbers up to 50", 
-    type: "strength" 
+    type: "strength" as const
   },
   { 
     area: "Writing", 
-    subject: "English", 
+    subject: "English" as Subject, 
     description: "Needs practice forming complete sentences", 
-    type: "weakness" 
+    type: "weakness" as const
   },
   { 
     area: "Subtraction", 
-    subject: "Maths", 
+    subject: "Maths" as Subject, 
     description: "Could improve with taking away numbers", 
-    type: "weakness" 
+    type: "weakness" as const
   },
 ];
 
@@ -279,3 +279,4 @@ const ChildDashboard = () => {
 };
 
 export default ChildDashboard;
+

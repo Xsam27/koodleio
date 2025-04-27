@@ -6,11 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
+import { Subject } from "@/types";
 
 interface Task {
   id: string;
   title: string;
-  subject: 'English' | 'Maths';
+  subject: Subject;
   completed: boolean;
   duration: number; // minutes
   topic: string;

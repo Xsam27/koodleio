@@ -2,10 +2,11 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, Lightbulb } from "lucide-react";
+import { Subject } from "@/types";
 
 interface Insight {
   area: string;
-  subject: 'English' | 'Maths';
+  subject: Subject;
   description: string;
   type: 'strength' | 'weakness';
 }
