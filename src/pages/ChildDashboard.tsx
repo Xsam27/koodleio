@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,7 +21,7 @@ import {
   fetchStarsForChild,
   ChildLevel,
   EarnedBadge,
-  Star as StarType
+  StarRecord
 } from "@/services/gamificationService";
 
 // Mock data for active child profile
@@ -174,7 +175,7 @@ const ChildDashboard = () => {
   const [profile] = useState<ChildProfile>(activeProfile);
   const [childLevel, setChildLevel] = useState<ChildLevel | null>(null);
   const [badges, setBadges] = useState<EarnedBadge[]>([]);
-  const [stars, setStars] = useState<StarType[]>([]);
+  const [stars, setStars] = useState<StarRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   

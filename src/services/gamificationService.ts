@@ -4,7 +4,7 @@ import { toast } from "@/components/ui/use-toast";
 import { Subject } from "@/types";
 
 // Types for our gamification data
-export interface Star {
+export interface StarRecord {
   id: string;
   child_id: string;
   activity_id: string;
@@ -46,9 +46,26 @@ export interface ChildLevel {
   updated_at: string;
 }
 
+// Difficulty type used throughout the application
+export type Difficulty = 'easy' | 'medium' | 'hard';
+
+// Helper function to convert numeric difficulty to string type
+export function convertDifficultyToString(difficulty: number): Difficulty {
+  switch(difficulty) {
+    case 1:
+      return 'easy';
+    case 2:
+      return 'medium';
+    case 3:
+    default:
+      return 'hard';
+  }
+}
+
 // Fetch stars for a specific child
-export const fetchStarsForChild = async (childId: string): Promise<Star[]> => {
+export const fetchStarsForChild = async (childId: string): Promise<StarRecord[]> => {
   try {
+    // Using 'any' type since we can't modify the Database types
     const { data, error } = await supabase
       .from('stars')
       .select('*')
@@ -320,7 +337,7 @@ export const completeActivity = async (
   score: number,
   timeTaken: number,
   topic: string,
-  difficulty: 'easy' | 'medium' | 'hard'
+  difficulty: Difficulty
 ): Promise<void> => {
   try {
     // 1. Save activity result

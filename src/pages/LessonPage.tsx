@@ -20,7 +20,7 @@ import MultipleChoiceActivity from "@/components/activities/MultipleChoiceActivi
 import FillInBlanksActivity from "@/components/activities/FillInBlanksActivity";
 import MatchPairsActivity from "@/components/activities/MatchPairsActivity";
 import { supabase } from "@/integrations/supabase/client";
-import { completeActivity } from "@/services/gamificationService";
+import { completeActivity, convertDifficultyToString } from "@/services/gamificationService";
 
 const ks1EnglishActivities: Activity[] = [
   {
@@ -275,7 +275,7 @@ const LessonPage = () => {
               isCorrect ? 100 : Math.floor(Math.random() * 50) + 30,
               timeTaken,
               activity.topic,
-              activity.difficulty as 'easy' | 'medium' | 'hard'
+              convertDifficultyToString(activity.difficulty)  // Convert numeric difficulty to string type
             );
           }
         });

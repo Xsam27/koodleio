@@ -10,6 +10,8 @@ import { Check, ChevronRight, Star, HelpCircle, Home, Brain } from "lucide-react
 import { toast } from "@/components/ui/use-toast";
 import CameraView from '@/components/learning/CameraView';
 import VoiceInteraction from '@/components/learning/VoiceInteraction';
+import { completeActivity, convertDifficultyToString } from "@/services/gamificationService";
+import { supabase } from "@/integrations/supabase/client";
 
 const activeProfile: ChildProfile = {
   id: "1",
@@ -122,8 +124,21 @@ const MathsLessonPage = () => {
   const [starsEarned, setStarsEarned] = useState(0);
   const [isLessonComplete, setIsLessonComplete] = useState(false);
   const [isAISpeaking, setIsAISpeaking] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   
   const currentActivity = mathActivities[currentActivityIndex];
+  
+  // Add a useEffect to get the user ID on component mount
+  useEffect(() => {
+    const getUserId = async () => {
+      const { data } = await supabase.auth.getUser();
+      if (data?.user) {
+        setUserId(data.user.id);
+      }
+    };
+    
+    getUserId();
+  }, []);
   
   useEffect(() => {
     const progressPercentage = (currentActivityIndex / mathActivities.length) * 100;
@@ -142,12 +157,48 @@ const MathsLessonPage = () => {
         title: "Correct! 🎉",
         description: "Well done! You got it right!",
       });
+
+      // Record activity completion with Supabase if user is logged in
+      if (userId) {
+        try {
+          completeActivity(
+            activeProfile.id,
+            userId,
+            currentActivity.id,
+            currentActivity.subjectArea,
+            100, // Perfect score
+            Math.floor(Math.random() * 60) + 30, // Random time between 30-90 seconds
+            currentActivity.topic,
+            convertDifficultyToString(currentActivity.difficulty) // Convert numeric difficulty to string
+          );
+        } catch (error) {
+          console.error("Error recording activity completion:", error);
+        }
+      }
     } else {
       toast({
         title: "Not quite right 🤔",
         description: "Let's try again or check the hint!",
         variant: "destructive"
       });
+      
+      // Record failed attempt with lower score if user is logged in
+      if (userId) {
+        try {
+          completeActivity(
+            activeProfile.id,
+            userId,
+            currentActivity.id,
+            currentActivity.subjectArea,
+            50, // Lower score for incorrect answer
+            Math.floor(Math.random() * 60) + 60, // Longer time for incorrect answers
+            currentActivity.topic,
+            convertDifficultyToString(currentActivity.difficulty) // Convert numeric difficulty to string
+          );
+        } catch (error) {
+          console.error("Error recording activity completion:", error);
+        }
+      }
     }
   };
   
