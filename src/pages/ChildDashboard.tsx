@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,6 +13,9 @@ import LearningInsights from "@/components/dashboard/LearningInsights";
 import LevelProgressCard from "@/components/dashboard/LevelProgressCard";
 import BadgesDisplay from "@/components/dashboard/BadgesDisplay";
 import StarsDisplay from "@/components/dashboard/StarsDisplay";
+import BadgeProgress from "@/components/dashboard/BadgeProgress";
+import RecommendationsSection from "@/components/dashboard/RecommendationsSection";
+import AiAssistantBubble from "@/components/dashboard/AiAssistantBubble";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   fetchChildLevel, 
@@ -23,6 +25,12 @@ import {
   EarnedBadge,
   StarRecord
 } from "@/services/gamificationService";
+import {
+  fetchRecommendedActivities,
+  fetchNextBadgeToUnlock,
+  RecommendedActivity,
+  NextBadgeProgress
+} from "@/services/recommendationService";
 
 // Mock data for active child profile
 const activeProfile: ChildProfile = {
@@ -176,6 +184,8 @@ const ChildDashboard = () => {
   const [childLevel, setChildLevel] = useState<ChildLevel | null>(null);
   const [badges, setBadges] = useState<EarnedBadge[]>([]);
   const [stars, setStars] = useState<StarRecord[]>([]);
+  const [recommendedActivities, setRecommendedActivities] = useState<RecommendedActivity[]>([]);
+  const [nextBadge, setNextBadge] = useState<NextBadgeProgress | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   
@@ -194,15 +204,19 @@ const ChildDashboard = () => {
         const childId = profile.id;
         
         // Fetch gamification data
-        const [levelData, badgesData, starsData] = await Promise.all([
+        const [levelData, badgesData, starsData, recommendedData, nextBadgeData] = await Promise.all([
           fetchChildLevel(childId),
           fetchEarnedBadgesForChild(childId),
-          fetchStarsForChild(childId)
+          fetchStarsForChild(childId),
+          fetchRecommendedActivities(childId),
+          fetchNextBadgeToUnlock(childId)
         ]);
         
         setChildLevel(levelData);
         setBadges(badgesData);
         setStars(starsData);
+        setRecommendedActivities(recommendedData);
+        setNextBadge(nextBadgeData);
       }
       
       setIsLoading(false);
@@ -210,6 +224,12 @@ const ChildDashboard = () => {
     
     fetchData();
   }, [profile.id]);
+  
+  // Get first badge for AI assistant
+  const recentBadge = badges.length > 0 && badges[0].badge ? {
+    name: badges[0].badge.name,
+    description: badges[0].badge.description || ''
+  } : undefined;
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -245,13 +265,26 @@ const ChildDashboard = () => {
                 totalTasks={4}
               />
               
-              {/* Learning Insights - Now connected to Supabase */}
+              {/* Recommendations Section - New Component */}
+              <RecommendationsSection 
+                activities={recommendedActivities}
+                isLoading={isLoading}
+              />
+              
+              {/* Learning Insights */}
               <LearningInsights 
                 childId={profile.id}
                 isLoading={isLoading}
               />
               
-              {/* Badges Display - New Component */}
+              {/* Badge Progress - New Component */}
+              <BadgeProgress 
+                earnedBadges={badges}
+                nextBadge={nextBadge}
+                isLoading={isLoading}
+              />
+              
+              {/* Badges Display */}
               <BadgesDisplay 
                 badges={badges}
                 isLoading={isLoading}
@@ -358,6 +391,14 @@ const ChildDashboard = () => {
           </div>
         </div>
       </main>
+      
+      {/* AI Assistant Chat Bubble */}
+      <AiAssistantBubble 
+        childName={profile.name}
+        recentStars={stars.slice(0, 5)}
+        streak={childLevel?.streak_days}
+        recentBadge={recentBadge}
+      />
       
       <Footer />
     </div>
