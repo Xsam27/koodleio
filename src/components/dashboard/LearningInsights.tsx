@@ -10,11 +10,11 @@ import {
 } from "@/services/gamificationService";
 
 interface Insight {
+  id?: string;
   area: string;
   subject: Subject;
   description: string;
   type: 'strength' | 'weakness';
-  id?: string;
 }
 
 interface RecommendedActivity {
@@ -27,10 +27,10 @@ interface RecommendedActivity {
 }
 
 interface AITip {
+  id?: string;
   text: string;
   focusArea?: string;
   subject?: Subject;
-  id?: string;
 }
 
 interface LearningInsightsProps {
@@ -66,14 +66,14 @@ const LearningInsights: React.FC<LearningInsightsProps> = ({
         // Fetch insights
         const insightsData = await fetchLearningInsights(childId);
         const formattedInsights: Insight[] = [
-          ...insightsData.strengths.map(s => ({
+          ...insightsData.strengths.map((s: any) => ({
             id: s.id,
             area: s.area,
             subject: s.subject as Subject,
             description: s.description,
             type: 'strength' as const
           })),
-          ...insightsData.weaknesses.map(w => ({
+          ...insightsData.weaknesses.map((w: any) => ({
             id: w.id,
             area: w.area,
             subject: w.subject as Subject,
@@ -84,7 +84,7 @@ const LearningInsights: React.FC<LearningInsightsProps> = ({
         
         // Fetch recommended activities
         const activitiesData = await fetchRecommendedActivities(childId);
-        const formattedActivities: RecommendedActivity[] = activitiesData.map(a => ({
+        const formattedActivities: RecommendedActivity[] = activitiesData.map((a: any) => ({
           id: a.id,
           title: a.title,
           subject: a.subject as Subject,

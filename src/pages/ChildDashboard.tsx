@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
@@ -21,7 +20,7 @@ import {
   fetchStarsForChild,
   ChildLevel,
   EarnedBadge,
-  Star
+  Star as StarType
 } from "@/services/gamificationService";
 
 // Mock data for active child profile
@@ -66,7 +65,7 @@ const activeProfile: ChildProfile = {
 
 // Mock achievements data
 const achievements = [
-  { id: "a1", title: "First Lesson", icon: <Star className="text-yellow-500" />, completed: true },
+  { id: "a1", title: "First Lesson", icon: <StarIcon className="text-yellow-500" />, completed: true },
   { id: "a2", title: "Math Superstar", icon: <Award className="text-yellow-500" />, completed: true },
   { id: "a3", title: "Reading Champion", icon: <Crown className="text-yellow-500" />, completed: false },
   { id: "a4", title: "Word Wizard", icon: <BookOpen className="text-yellow-500" />, completed: false },
@@ -175,7 +174,7 @@ const ChildDashboard = () => {
   const [profile] = useState<ChildProfile>(activeProfile);
   const [childLevel, setChildLevel] = useState<ChildLevel | null>(null);
   const [badges, setBadges] = useState<EarnedBadge[]>([]);
-  const [stars, setStars] = useState<Star[]>([]);
+  const [stars, setStars] = useState<StarType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   
