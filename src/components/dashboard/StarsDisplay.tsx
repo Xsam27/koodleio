@@ -2,10 +2,10 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Star } from "lucide-react";
-import { Star as StarType } from "@/services/gamificationService";
+import { StarRecord } from "@/services/gamificationService";
 
 interface StarsDisplayProps {
-  stars: StarType[];
+  stars: StarRecord[];
   totalStars: number;
   isLoading?: boolean;
 }
