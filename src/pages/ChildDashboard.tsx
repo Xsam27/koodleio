@@ -225,11 +225,14 @@ const ChildDashboard = () => {
     fetchData();
   }, [profile.id]);
   
-  // Get first badge for AI assistant
+  // Get most recent badge for AI assistant
   const recentBadge = badges.length > 0 && badges[0].badge ? {
     name: badges[0].badge.name,
     description: badges[0].badge.description || ''
   } : undefined;
+
+  // Get child's age from profile
+  const childAge = profile.age || 7;
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -395,9 +398,12 @@ const ChildDashboard = () => {
       {/* AI Assistant Chat Bubble */}
       <AiAssistantBubble 
         childName={profile.name}
+        childAge={childAge}
+        keyStage={profile.keyStage}
         recentStars={stars.slice(0, 5)}
+        badges={badges}
         streak={childLevel?.streak_days}
-        recentBadge={recentBadge}
+        subject={null} // Could be dynamically set based on current subject focus
       />
       
       <Footer />
