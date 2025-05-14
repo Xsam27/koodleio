@@ -165,8 +165,7 @@ const TutorChat: React.FC<TutorChatProps> = ({ userId, gradeLevel }) => {
           </Button>
         </form>
       </CardContent>
-    </CardContent>
-  </Card>
+    </Card>
   );
 };
 
