@@ -9,7 +9,108 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      messages: {
+        Row: {
+          id: string
+          message: string
+          response: string
+          subject_id: string | null
+          timestamp: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          message: string
+          response: string
+          subject_id?: string | null
+          timestamp?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          message?: string
+          response?: string
+          subject_id?: string | null
+          timestamp?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subjects: {
+        Row: {
+          content_outline: Json | null
+          created_at: string
+          grade_level: number
+          id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content_outline?: Json | null
+          created_at?: string
+          grade_level: number
+          id?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content_outline?: Json | null
+          created_at?: string
+          grade_level?: number
+          id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      users: {
+        Row: {
+          created_at: string
+          email: string
+          grade_level: number | null
+          id: string
+          name: string
+          preferences: Json | null
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          grade_level?: number | null
+          id: string
+          name: string
+          preferences?: Json | null
+          role?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          grade_level?: number | null
+          id?: string
+          name?: string
+          preferences?: Json | null
+          role?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
