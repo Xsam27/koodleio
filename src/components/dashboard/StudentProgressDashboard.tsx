@@ -68,13 +68,30 @@ interface SubjectCompletion {
   timeSpent?: number;
 }
 
+// Define interface for lesson progress data
+interface LessonProgressItem {
+  id: string;
+  user_id: string;
+  lesson_id: string;
+  completed: boolean;
+  score?: number;
+  time_spent?: number;
+  updated_at: string;
+  lesson?: {
+    title?: string;
+    subject?: {
+      title?: string;
+    };
+  };
+}
+
 const StudentProgressDashboard: React.FC<StudentProgressDashboardProps> = ({ 
   userId, 
   studentId,
   userName
 }) => {
   const [loading, setLoading] = useState(true);
-  const [lessonProgress, setLessonProgress] = useState<any[]>([]);
+  const [lessonProgress, setLessonProgress] = useState<LessonProgressItem[]>([]);
   const [messages, setMessages] = useState<any[]>([]);
   const [badges, setBadges] = useState<any[]>([]);
   const [streak, setStreak] = useState<any>(null);
@@ -98,7 +115,7 @@ const StudentProgressDashboard: React.FC<StudentProgressDashboardProps> = ({
           fetchUserStreak(targetUserId),
         ]);
         
-        setLessonProgress(progressData);
+        setLessonProgress(progressData as LessonProgressItem[]);
         setMessages(messagesData);
         setBadges(badgesData);
         setStreak(streakData);
