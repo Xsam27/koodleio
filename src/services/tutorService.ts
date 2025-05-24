@@ -205,3 +205,27 @@ export const getSubjectRecommendations = async (userId: string): Promise<any[]> 
     return [];
   }
 };
+
+// Generate a progress report for a student
+export const generateProgressReport = async (
+  userId: string,
+  studentId: string
+) => {
+  try {
+    const { data, error } = await supabase.functions.invoke('generate-progress-report', {
+      body: { userId, studentId }
+    });
+    
+    if (error) throw error;
+    
+    return data;
+  } catch (error) {
+    console.error("Error generating progress report:", error);
+    toast({
+      title: "Error generating report",
+      description: error instanceof Error ? error.message : "Unknown error occurred",
+      variant: "destructive"
+    });
+    return null;
+  }
+};

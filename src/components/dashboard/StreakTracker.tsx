@@ -2,27 +2,24 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Flame, Trophy, Award, Star, Calendar } from "lucide-react";
-import { ChildLevel } from "@/services/gamificationService";
 
 interface StreakTrackerProps {
-  childLevel: ChildLevel | null;
+  currentStreak: number;
+  longestStreak: number;
+  totalStars?: number;
+  totalBadges?: number;
+  isActiveToday?: boolean;
   isLoading?: boolean;
 }
 
 const StreakTracker: React.FC<StreakTrackerProps> = ({
-  childLevel,
+  currentStreak = 0,
+  longestStreak = 0,
+  totalStars = 0,
+  totalBadges = 0,
+  isActiveToday = false,
   isLoading = false
 }) => {
-  const currentStreak = childLevel?.streak_days || 0;
-  const longestStreak = childLevel?.longest_streak || 0;
-  const totalStars = childLevel?.total_stars || 0;
-  const totalBadges = childLevel?.total_badges || 0;
-  
-  // Check if active today
-  const isActiveToday = childLevel?.last_activity_date ? 
-    new Date(childLevel.last_activity_date).toDateString() === new Date().toDateString() : 
-    false;
-  
   if (isLoading) {
     return (
       <Card className="hover-grow mb-6">

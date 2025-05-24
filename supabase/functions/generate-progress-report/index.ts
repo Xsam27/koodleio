@@ -107,7 +107,7 @@ serve(async (req) => {
       progress: {
         lessonsCompleted: lessonProgress?.filter(p => p.completed).length || 0,
         totalLessons: lessonProgress?.length || 0,
-        subjects: {},
+        subjects: {} as Record<string, { total: number; completed: number; timeSpent: number }>,
         recentLessons: lessonProgress?.sort((a, b) => 
           new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
         ).slice(0, 5),
@@ -129,7 +129,7 @@ serve(async (req) => {
     
     // Process subjects data
     if (lessonProgress) {
-      const subjects = {};
+      const subjects: Record<string, { total: number; completed: number; timeSpent: number }> = {};
       lessonProgress.forEach(progress => {
         const subjectTitle = progress.subject?.subject?.title || 'Unknown';
         if (!subjects[subjectTitle]) {

@@ -47,6 +47,17 @@ interface ProgressReportData {
   };
 }
 
+// Define interface for badges display
+interface EarnedBadge {
+  id: string;
+  badge: {
+    name: string;
+    description: string;
+    icon: string;
+  };
+  earned_at: string;
+}
+
 const StudentProgressDashboard: React.FC<StudentProgressDashboardProps> = ({ 
   userId, 
   studentId,
@@ -369,6 +380,8 @@ const StudentProgressDashboard: React.FC<StudentProgressDashboardProps> = ({
                   (Math.min(messages.length, 50) / 10)
                 ) + 1,
                 current_title: "Learner",
+                english_level: 1,
+                maths_level: 1,
                 total_stars: lessonProgress.filter(p => p.completed).length * 5 + badges.length * 10,
                 total_badges: badges.length,
                 streak_days: streak?.current_streak || 0,
@@ -407,6 +420,11 @@ const StudentProgressDashboard: React.FC<StudentProgressDashboardProps> = ({
                 <StreakTracker
                   currentStreak={streak?.current_streak || 0}
                   longestStreak={streak?.longest_streak || 0}
+                  totalStars={lessonProgress.filter(p => p.completed).length * 5 + badges.length * 10}
+                  totalBadges={badges.length}
+                  isActiveToday={streak?.last_activity_date ? 
+                    new Date(streak.last_activity_date).toDateString() === new Date().toDateString() : 
+                    false}
                 />
               </CardContent>
             </Card>
@@ -526,7 +544,13 @@ const StudentProgressDashboard: React.FC<StudentProgressDashboardProps> = ({
         </TabsContent>
         
         <TabsContent value="achievements" className="space-y-4">
-          <BadgesDisplay badges={badges.map(b => ({ id: b.id, badge: b, earned_at: b.awarded_at }))} />
+          <BadgesDisplay badges={badges.map(b => ({
+            id: b.id,
+            badge: b.badge,
+            earned_at: b.awarded_at,
+            badge_id: b.badge_id,
+            child_id: targetUserId
+          }))} />
         </TabsContent>
         
         <TabsContent value="activity" className="space-y-4">
