@@ -33,10 +33,22 @@ export interface TutorResponse {
   error?: string;
 }
 
+export interface TutorOptions {
+  tone?: 'friendly' | 'encouraging' | 'simplified';
+  simplifiedMode?: boolean;
+  lessonContext?: {
+    lessonId: string;
+    stepId: string;
+    stepTitle: string;
+    stepContent: string;
+  };
+}
+
 export const askTutor = async (
   userId: string,
   question: string,
-  subjectId?: string
+  subjectId?: string,
+  options?: TutorOptions
 ): Promise<TutorResponse> => {
   try {
     // Check rate limit
@@ -51,7 +63,8 @@ export const askTutor = async (
       body: {
         userId,
         question,
-        subjectId
+        subjectId,
+        options
       }
     });
     
@@ -111,11 +124,11 @@ export const saveProgress = async (
 export const fetchUserMessages = async (
   userId: string,
   limit = 10
-): Promise<{ message: string; response: string; timestamp: string }[]> => {
+): Promise<{ id: string; message: string; response: string; timestamp: string }[]> => {
   try {
     const { data, error } = await supabase
       .from('messages')
-      .select('message, response, timestamp')
+      .select('id, message, response, timestamp')
       .eq('user_id', userId)
       .order('timestamp', { ascending: false })
       .limit(limit);
@@ -149,6 +162,46 @@ export const fetchSubjects = async (gradeLevel?: number): Promise<{ id: string; 
     return data || [];
   } catch (error) {
     console.error("Error fetching subjects:", error);
+    return [];
+  }
+};
+
+// Get learning statistics for a user
+export const getUserLearningStats = async (userId: string): Promise<any> => {
+  try {
+    const [messages, lessonProgress] = await Promise.all([
+      supabase
+        .from('messages')
+        .select('count')
+        .eq('user_id', userId),
+      
+      supabase
+        .from('lesson_progress')
+        .select('count')
+        .eq('user_id', userId)
+        .eq('completed', true)
+    ]);
+
+    return {
+      totalQuestions: messages.count || 0,
+      completedLessons: lessonProgress.count || 0
+    };
+  } catch (error) {
+    console.error("Error fetching learning stats:", error);
+    return { totalQuestions: 0, completedLessons: 0 };
+  }
+};
+
+// Get recommendations for subjects the user might need help with
+export const getSubjectRecommendations = async (userId: string): Promise<any[]> => {
+  try {
+    const { data, error } = await supabase.rpc('get_subject_recommendations', { user_id: userId });
+    
+    if (error) throw error;
+    
+    return data || [];
+  } catch (error) {
+    console.error("Error fetching subject recommendations:", error);
     return [];
   }
 };
