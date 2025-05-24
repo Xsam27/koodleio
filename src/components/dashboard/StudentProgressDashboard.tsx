@@ -7,7 +7,7 @@ import { Download, BookOpen, MessageSquare, Award, ChartBar } from 'lucide-react
 import { fetchLessonProgress } from '@/services/lessonService';
 import { fetchUserMessages } from '@/services/tutorService';
 import { fetchUserBadges, fetchUserStreak } from '@/services/userService';
-import { generateProgressReport } from '@/services/lessonService';
+import { generateProgressReport } from '@/services/tutorService';
 import LevelProgressCard from '@/components/dashboard/LevelProgressCard';
 import BadgesDisplay from '@/components/dashboard/BadgesDisplay';
 import StreakTracker from '@/components/dashboard/StreakTracker';
@@ -56,6 +56,16 @@ interface EarnedBadge {
     icon: string;
   };
   earned_at: string;
+  badge_id: string;
+  child_id: string;
+}
+
+// Define interface for subject data
+interface SubjectCompletion {
+  name: string;
+  total: number;
+  completed: number;
+  timeSpent?: number;
 }
 
 const StudentProgressDashboard: React.FC<StudentProgressDashboardProps> = ({ 
@@ -219,7 +229,7 @@ const StudentProgressDashboard: React.FC<StudentProgressDashboardProps> = ({
   
   // Calculate completion rates for subjects
   const subjectCompletion = React.useMemo(() => {
-    const subjects: Record<string, { total: number, completed: number, name: string }> = {};
+    const subjects: Record<string, SubjectCompletion> = {};
     
     lessonProgress.forEach(progress => {
       const subjectTitle = progress.lesson?.subject?.title || 'Unknown';
@@ -228,7 +238,8 @@ const StudentProgressDashboard: React.FC<StudentProgressDashboardProps> = ({
         subjects[subjectTitle] = {
           total: 0,
           completed: 0,
-          name: subjectTitle
+          name: subjectTitle,
+          timeSpent: 0
         };
       }
       
@@ -236,6 +247,7 @@ const StudentProgressDashboard: React.FC<StudentProgressDashboardProps> = ({
       if (progress.completed) {
         subjects[subjectTitle].completed += 1;
       }
+      subjects[subjectTitle].timeSpent = (subjects[subjectTitle].timeSpent || 0) + (progress.time_spent || 0);
     });
     
     return Object.values(subjects);

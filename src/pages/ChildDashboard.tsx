@@ -298,7 +298,13 @@ const ChildDashboard = () => {
               {/* Streak & Level */}
               <div className="space-y-6">
                 <StreakTracker 
-                  childLevel={childLevel}
+                  currentStreak={childLevel?.streak_days || 0}
+                  longestStreak={childLevel?.longest_streak || 0}
+                  totalStars={childLevel?.total_stars || 0}
+                  totalBadges={childLevel?.total_badges || 0}
+                  isActiveToday={childLevel?.last_activity_date ? 
+                    new Date(childLevel.last_activity_date).toDateString() === new Date().toDateString() : 
+                    false}
                   isLoading={isLoading}
                 />
                 
