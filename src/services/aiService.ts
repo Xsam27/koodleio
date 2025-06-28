@@ -30,9 +30,64 @@ export const generateLearningInsights = async (
 
 export interface TutorAIResponse {
   response: string;
+  conversationId?: string;
+  timestamp?: string;
   error?: string;
 }
 
+export interface ConversationMessage {
+  message: string;
+  response: string;
+  timestamp: string;
+}
+
+export const sendMessageToGeminiSocraticTutor = async (
+  message: string,
+  childInfo: {
+    name: string;
+    age?: number;
+    keyStage?: string;
+    recentStars?: StarRecord[];
+    badges?: EarnedBadge[];
+    streak?: number;
+    subject?: string;
+  },
+  conversationHistory?: ConversationMessage[],
+  lessonContext?: {
+    lessonId: string;
+    stepId: string;
+    stepTitle: string;
+    stepContent: string;
+  },
+  userId?: string
+): Promise<TutorAIResponse> => {
+  try {
+    const { data, error } = await supabase.functions.invoke('gemini-socratic-tutor', {
+      body: {
+        message,
+        childName: childInfo.name,
+        childAge: childInfo.age || 7,
+        keyStage: childInfo.keyStage || "KS1",
+        subject: childInfo.subject || null,
+        conversationHistory: conversationHistory || [],
+        lessonContext: lessonContext || null,
+        userId: userId || null
+      }
+    });
+    
+    if (error) throw error;
+    
+    return data as TutorAIResponse;
+  } catch (error) {
+    console.error("Error sending message to Gemini Socratic tutor:", error);
+    return { 
+      response: "I'm having trouble thinking right now. Can we try again in a moment?",
+      error: error instanceof Error ? error.message : String(error)
+    };
+  }
+};
+
+// Legacy function for backward compatibility
 export const sendMessageToTutorAI = async (
   message: string,
   childInfo: {
@@ -45,28 +100,5 @@ export const sendMessageToTutorAI = async (
     subject?: string;
   }
 ): Promise<TutorAIResponse> => {
-  try {
-    const { data, error } = await supabase.functions.invoke('tutor-ai-chat', {
-      body: {
-        message,
-        childName: childInfo.name,
-        childAge: childInfo.age || 7,
-        keyStage: childInfo.keyStage || "KS1",
-        recentStars: childInfo.recentStars || [],
-        badges: childInfo.badges || [],
-        streak: childInfo.streak || 0,
-        subject: childInfo.subject || null
-      }
-    });
-    
-    if (error) throw error;
-    
-    return data as TutorAIResponse;
-  } catch (error) {
-    console.error("Error sending message to tutor AI:", error);
-    return { 
-      response: "Sorry, I'm having trouble thinking right now. Can we try again in a moment?",
-      error: error instanceof Error ? error.message : String(error)
-    };
-  }
+  return sendMessageToGeminiSocraticTutor(message, childInfo);
 };

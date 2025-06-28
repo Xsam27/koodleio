@@ -5,7 +5,7 @@ import { MessageCircle, X, MinusCircle, BrainCircuit, ChevronDown, ChevronUp, Se
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { StarRecord, EarnedBadge } from "@/services/gamificationService";
-import { sendMessageToTutorAI } from "@/services/aiService";
+import { sendMessageToGeminiSocraticTutor, ConversationMessage } from "@/services/aiService";
 import { Spinner } from "@/components/ui/spinner";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
@@ -19,6 +19,7 @@ interface AiAssistantBubbleProps {
   streak?: number;
   badges?: EarnedBadge[];
   subject?: string;
+  userId?: string;
 }
 
 interface Message {
@@ -26,6 +27,7 @@ interface Message {
   text: string;
   isUser: boolean;
   timestamp: Date;
+  type?: 'question' | 'guidance' | 'encouragement';
 }
 
 const AiAssistantBubble: React.FC<AiAssistantBubbleProps> = ({
@@ -35,19 +37,22 @@ const AiAssistantBubble: React.FC<AiAssistantBubbleProps> = ({
   recentStars = [],
   streak = 0,
   badges = [],
-  subject
+  subject,
+  userId
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [inputValue, setInputValue] = useState("");
+  const [conversationHistory, setConversationHistory] = useState<ConversationMessage[]>([]);
   const [messages, setMessages] = useState<Message[]>([
     { 
       id: "welcome",
-      text: `Hi ${childName}! I'm your tutor Astro. How can I help you today?`, 
+      text: `Hi ${childName}! I'm Astro, your Socratic tutor. Instead of giving you direct answers, I'll help you discover them by asking the right questions. What shall we explore together? 🚀`, 
       isUser: false,
-      timestamp: new Date()
+      timestamp: new Date(),
+      type: 'encouragement'
     },
   ]);
 
@@ -82,6 +87,12 @@ const AiAssistantBubble: React.FC<AiAssistantBubbleProps> = ({
     setTimeout(scrollToBottom, 100);
   };
 
+  const getMessageType = (text: string): 'question' | 'guidance' | 'encouragement' => {
+    if (text.includes('?')) return 'question';
+    if (text.includes('think') || text.includes('consider') || text.includes('What if')) return 'guidance';
+    return 'encouragement';
+  };
+
   const handleSend = async () => {
     if (inputValue.trim() && !isLoading) {
       setIsLoading(true);
@@ -98,8 +109,8 @@ const AiAssistantBubble: React.FC<AiAssistantBubbleProps> = ({
       setInputValue("");
       
       try {
-        // Send to AI and get response
-        const response = await sendMessageToTutorAI(
+        // Send to Gemini Socratic AI and get response
+        const response = await sendMessageToGeminiSocraticTutor(
           userMessage.text,
           {
             name: childName,
@@ -109,11 +120,14 @@ const AiAssistantBubble: React.FC<AiAssistantBubbleProps> = ({
             badges,
             streak,
             subject
-          }
+          },
+          conversationHistory,
+          undefined, // no lesson context in bubble chat
+          userId
         );
         
         if (response.error) {
-          console.error("Error from AI service:", response.error);
+          console.error("Error from Gemini Socratic service:", response.error);
           toast({
             title: "Oops!",
             description: "I had trouble thinking. Let's try again!",
@@ -126,19 +140,31 @@ const AiAssistantBubble: React.FC<AiAssistantBubbleProps> = ({
           id: `ai-${Date.now()}`,
           text: response.response,
           isUser: false,
-          timestamp: new Date()
+          timestamp: new Date(),
+          type: getMessageType(response.response)
         };
         
         setMessages(prev => [...prev, aiResponse]);
+        
+        // Update conversation history for context
+        const newConversation: ConversationMessage = {
+          message: userMessage.text,
+          response: response.response,
+          timestamp: response.timestamp || new Date().toISOString()
+        };
+        
+        setConversationHistory(prev => [...prev.slice(-4), newConversation]);
+        
       } catch (error) {
-        console.error("Error in AI chat:", error);
+        console.error("Error in Socratic AI chat:", error);
         
         // Add fallback message if something goes wrong
         const fallbackMessage: Message = {
           id: `error-${Date.now()}`,
-          text: "Sorry, I'm having a little trouble right now. Can we try again?",
+          text: "I'm having a little trouble right now. Can we try that question again?",
           isUser: false,
-          timestamp: new Date()
+          timestamp: new Date(),
+          type: 'encouragement'
         };
         
         setMessages(prev => [...prev, fallbackMessage]);
@@ -166,18 +192,18 @@ const AiAssistantBubble: React.FC<AiAssistantBubbleProps> = ({
         <Sheet>
           <SheetTrigger asChild>
             <Button
-              className="fixed bottom-4 right-4 rounded-full h-12 w-12 shadow-lg bg-gradient-to-r from-primary to-indigo-600"
-              aria-label="Open AI tutor chat"
+              className="fixed bottom-4 right-4 rounded-full h-12 w-12 shadow-lg bg-gradient-to-r from-purple-500 to-indigo-600"
+              aria-label="Open Socratic AI tutor chat"
             >
               <MessageCircle size={24} />
             </Button>
           </SheetTrigger>
           
           <SheetContent className="w-full h-[80vh] p-0 flex flex-col">
-            <div className="flex items-center justify-between bg-gradient-to-r from-primary to-indigo-600 p-3 text-white">
+            <div className="flex items-center justify-between bg-gradient-to-r from-purple-500 to-indigo-600 p-3 text-white">
               <div className="flex items-center gap-2">
                 <BrainCircuit size={18} />
-                <span className="font-medium">Astro - Your Tutor</span>
+                <span className="font-medium">Astro - Socratic Tutor</span>
                 {isSpeaking && (
                   <Badge variant="secondary" className="bg-white/20 text-xs">
                     Speaking...
@@ -195,7 +221,7 @@ const AiAssistantBubble: React.FC<AiAssistantBubbleProps> = ({
                   <div 
                     className={`inline-block rounded-lg px-3 py-2 max-w-[80%] ${
                       msg.isUser 
-                        ? 'bg-primary text-white' 
+                        ? 'bg-purple-500 text-white' 
                         : 'bg-gray-100 text-gray-800'
                     }`}
                   >
@@ -210,9 +236,9 @@ const AiAssistantBubble: React.FC<AiAssistantBubbleProps> = ({
                 <div className="flex items-center space-x-2 text-gray-500">
                   <div className="animate-pulse">Thinking</div>
                   <div className="flex space-x-1">
-                    <div className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce"></div>
-                    <div className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce [animation-delay:150ms]"></div>
-                    <div className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce [animation-delay:300ms]"></div>
+                    <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce"></div>
+                    <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce [animation-delay:150ms]"></div>
+                    <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce [animation-delay:300ms]"></div>
                   </div>
                 </div>
               )}
@@ -229,13 +255,13 @@ const AiAssistantBubble: React.FC<AiAssistantBubbleProps> = ({
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Ask me anything..."
-                  className="flex-1 border rounded-full px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                  placeholder="Share your thoughts..."
+                  className="flex-1 border rounded-full px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-purple-500"
                   disabled={isLoading}
                 />
                 <Button 
                   size="sm" 
-                  className="rounded-full flex items-center gap-1"
+                  className="rounded-full flex items-center gap-1 bg-gradient-to-r from-purple-500 to-indigo-600"
                   onClick={handleSend}
                   disabled={isLoading || !inputValue.trim()}
                 >
@@ -254,10 +280,10 @@ const AiAssistantBubble: React.FC<AiAssistantBubbleProps> = ({
           <Card className={`mb-2 w-80 overflow-hidden transition-all duration-300 shadow-lg ${
             isMinimized ? 'h-16' : 'h-[450px]'
           }`}>
-            <div className="flex items-center justify-between bg-gradient-to-r from-primary to-indigo-600 p-3 text-white">
+            <div className="flex items-center justify-between bg-gradient-to-r from-purple-500 to-indigo-600 p-3 text-white">
               <div className="flex items-center gap-2">
                 <BrainCircuit size={18} />
-                <span className="font-medium">Astro - Your Tutor</span>
+                <span className="font-medium">Astro - Socratic Tutor</span>
                 {isSpeaking && (
                   <Badge variant="secondary" className="bg-white/20 text-xs">
                     Speaking...
@@ -291,7 +317,7 @@ const AiAssistantBubble: React.FC<AiAssistantBubbleProps> = ({
                       <div 
                         className={`inline-block rounded-lg px-3 py-2 max-w-[80%] ${
                           msg.isUser 
-                            ? 'bg-primary text-white' 
+                            ? 'bg-purple-500 text-white' 
                             : 'bg-gray-100 text-gray-800'
                         }`}
                       >
@@ -306,9 +332,9 @@ const AiAssistantBubble: React.FC<AiAssistantBubbleProps> = ({
                     <div className="flex items-center space-x-2 text-gray-500">
                       <div className="animate-pulse">Thinking</div>
                       <div className="flex space-x-1">
-                        <div className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce"></div>
-                        <div className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce [animation-delay:150ms]"></div>
-                        <div className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce [animation-delay:300ms]"></div>
+                        <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce"></div>
+                        <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce [animation-delay:150ms]"></div>
+                        <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce [animation-delay:300ms]"></div>
                       </div>
                     </div>
                   )}
@@ -325,13 +351,13 @@ const AiAssistantBubble: React.FC<AiAssistantBubbleProps> = ({
                       value={inputValue}
                       onChange={(e) => setInputValue(e.target.value)}
                       onKeyPress={handleKeyPress}
-                      placeholder="Ask me anything..."
-                      className="flex-1 border rounded-full px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                      placeholder="Share your thoughts..."
+                      className="flex-1 border rounded-full px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-purple-500"
                       disabled={isLoading}
                     />
                     <Button 
                       size="sm" 
-                      className="rounded-full flex items-center gap-1"
+                      className="rounded-full flex items-center gap-1 bg-gradient-to-r from-purple-500 to-indigo-600"
                       onClick={handleSend}
                       disabled={isLoading || !inputValue.trim()}
                     >
@@ -347,8 +373,8 @@ const AiAssistantBubble: React.FC<AiAssistantBubbleProps> = ({
         
         <Button
           onClick={toggleChat}
-          className="rounded-full h-12 w-12 shadow-lg bg-gradient-to-r from-primary to-indigo-600"
-          aria-label="Open AI tutor chat"
+          className="rounded-full h-12 w-12 shadow-lg bg-gradient-to-r from-purple-500 to-indigo-600"
+          aria-label="Open Socratic AI tutor chat"
         >
           <MessageCircle size={24} />
         </Button>
