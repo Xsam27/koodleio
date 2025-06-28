@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,13 @@ interface StudentProgressDashboardProps {
   userName?: string;
 }
 
+// Define proper interface for subject progress data
+interface SubjectProgressData {
+  total: number;
+  completed: number;
+  timeSpent: number;
+}
+
 interface ProgressReportData {
   student: {
     name: string;
@@ -31,7 +39,7 @@ interface ProgressReportData {
   progress: {
     lessonsCompleted: number;
     totalLessons: number;
-    subjects: Record<string, { total: number; completed: number; timeSpent: number }>;
+    subjects: Record<string, SubjectProgressData>;
     recentLessons: any[];
   };
   interaction: {
@@ -131,7 +139,7 @@ const StudentProgressDashboard: React.FC<StudentProgressDashboardProps> = ({
     setReportLoading(true);
     
     try {
-      const reportData = await generateProgressReport(userId, targetUserId);
+      const reportData: ProgressReportData = await generateProgressReport(userId, targetUserId);
       if (!reportData) {
         throw new Error('Failed to generate report data');
       }
@@ -166,7 +174,7 @@ const StudentProgressDashboard: React.FC<StudentProgressDashboardProps> = ({
       doc.text('Subject Progress', 20, 150);
       
       let yPos = 160;
-      Object.entries(reportData.progress.subjects).forEach(([subject, data]) => {
+      Object.entries(reportData.progress.subjects).forEach(([subject, data]: [string, SubjectProgressData]) => {
         const completionPercentage = data.total > 0 
           ? Math.round((data.completed / data.total) * 100) 
           : 0;
