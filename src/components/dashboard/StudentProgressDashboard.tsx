@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Download, BookOpen, MessageSquare, Award, ChartBar } from 'lucide-react';
-import { fetchLessonProgress } from '@/services/lessonService';
+import { fetchLessonProgress, LessonProgress } from '@/services/lessonService';
 import { fetchUserMessages } from '@/services/tutorService';
 import { fetchUserBadges, fetchUserStreak } from '@/services/userService';
 import { generateProgressReport } from '@/services/tutorService';
@@ -65,23 +64,17 @@ interface SubjectCompletion {
   name: string;
   total: number;
   completed: number;
-  timeSpent?: number;
+  timeSpent: number;
 }
 
-// Define interface for lesson progress data
-interface LessonProgressItem {
-  id: string;
-  user_id: string;
-  lesson_id: string;
-  completed: boolean;
-  score?: number;
-  time_spent?: number;
-  updated_at: string;
+// Extended interface for lesson progress with nested data
+interface ExtendedLessonProgress extends LessonProgress {
   lesson?: {
     title?: string;
     subject?: {
       title?: string;
     };
+    subject_id?: string;
   };
 }
 
@@ -91,7 +84,7 @@ const StudentProgressDashboard: React.FC<StudentProgressDashboardProps> = ({
   userName
 }) => {
   const [loading, setLoading] = useState(true);
-  const [lessonProgress, setLessonProgress] = useState<LessonProgressItem[]>([]);
+  const [lessonProgress, setLessonProgress] = useState<ExtendedLessonProgress[]>([]);
   const [messages, setMessages] = useState<any[]>([]);
   const [badges, setBadges] = useState<any[]>([]);
   const [streak, setStreak] = useState<any>(null);
@@ -115,7 +108,7 @@ const StudentProgressDashboard: React.FC<StudentProgressDashboardProps> = ({
           fetchUserStreak(targetUserId),
         ]);
         
-        setLessonProgress(progressData as LessonProgressItem[]);
+        setLessonProgress(progressData as ExtendedLessonProgress[]);
         setMessages(messagesData);
         setBadges(badgesData);
         setStreak(streakData);
@@ -264,7 +257,7 @@ const StudentProgressDashboard: React.FC<StudentProgressDashboardProps> = ({
       if (progress.completed) {
         subjects[subjectTitle].completed += 1;
       }
-      subjects[subjectTitle].timeSpent = (subjects[subjectTitle].timeSpent || 0) + (progress.time_spent || 0);
+      subjects[subjectTitle].timeSpent += (progress.time_spent || 0);
     });
     
     return Object.values(subjects);

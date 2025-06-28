@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 
@@ -37,6 +36,7 @@ export interface LessonProgress {
   score?: number;
   time_spent?: number;
   last_accessed: string;
+  updated_at?: string; // Add this field to match the component expectations
 }
 
 // Fetch available lessons
