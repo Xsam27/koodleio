@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { MessageCircle, Brain, Lightbulb, ThumbsUp } from 'lucide-react';
-import { sendMessageToGeminiSocraticTutor, ConversationMessage } from '@/services/aiService';
+import { sendMessageToGeminiSocraticTutor, ConversationMessage, generateSessionId } from '@/services/aiService';
 import { Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/hooks/use-toast';
 import VoiceInteraction from './VoiceInteraction';
@@ -52,6 +52,7 @@ const SocraticTutorChat: React.FC<SocraticTutorChatProps> = ({
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [conversationHistory, setConversationHistory] = useState<ConversationMessage[]>([]);
+  const [sessionId] = useState(() => generateSessionId()); // Generate session ID once per component
   const [isSpeaking, setIsSpeaking] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -105,7 +106,8 @@ const SocraticTutorChat: React.FC<SocraticTutorChatProps> = ({
         },
         conversationHistory,
         lessonContext,
-        userId
+        userId,
+        sessionId // Pass the session ID for conversation tracking
       );
       
       if (response.error) {
@@ -135,6 +137,11 @@ const SocraticTutorChat: React.FC<SocraticTutorChatProps> = ({
       };
       
       setConversationHistory(prev => [...prev.slice(-4), newConversation]);
+      
+      // Show response time if available (for debugging/analytics)
+      if (response.responseTime && response.responseTime > 2000) {
+        console.log(`Response took ${response.responseTime}ms`);
+      }
       
     } catch (error) {
       console.error("Error in Socratic chat:", error);
@@ -177,6 +184,9 @@ const SocraticTutorChat: React.FC<SocraticTutorChatProps> = ({
             <strong>Learning:</strong> {lessonContext.stepTitle}
           </div>
         )}
+        <div className="text-xs bg-white/10 rounded p-1 text-center">
+          Session: Learning Analytics Enabled
+        </div>
       </CardHeader>
       
       <CardContent className="flex-1 p-0 flex flex-col">

@@ -19,6 +19,8 @@ serve(async (req) => {
 
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const startTime = Date.now();
+    
     const { 
       message, 
       childName, 
@@ -27,7 +29,8 @@ serve(async (req) => {
       subject, 
       conversationHistory,
       lessonContext,
-      userId 
+      userId,
+      sessionId 
     } = await req.json();
 
     // Create Socratic tutoring prompt
@@ -112,9 +115,21 @@ Respond as Astro using the Socratic method:`;
     const response = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || 
                     "I'm having trouble thinking right now. Can you ask me that again?";
 
-    // Store the conversation in Supabase if userId is provided
+    const endTime = Date.now();
+    const responseTime = endTime - startTime;
+
+    // Store the conversation in Supabase with analytics data
     if (userId) {
       try {
+        // Calculate conversation turn number for this session
+        const { count } = await supabase
+          .from('tutor_conversations')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', userId)
+          .eq('session_id', sessionId || crypto.randomUUID());
+
+        const conversationTurn = (count || 0) + 1;
+
         await supabase
           .from('tutor_conversations')
           .insert({
@@ -125,8 +140,12 @@ Respond as Astro using the Socratic method:`;
             subject: subject,
             key_stage: keyStage,
             lesson_context: lessonContext,
-            created_at: new Date().toISOString()
+            session_id: sessionId || crypto.randomUUID(),
+            conversation_turn: conversationTurn,
+            response_time_ms: responseTime,
           });
+
+        console.log(`Conversation stored for user ${userId}, turn ${conversationTurn}, response time: ${responseTime}ms`);
       } catch (error) {
         console.error('Error storing conversation:', error);
         // Don't fail the request if storage fails
@@ -139,7 +158,8 @@ Respond as Astro using the Socratic method:`;
       JSON.stringify({ 
         response,
         conversationId: crypto.randomUUID(),
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        responseTime: responseTime
       }),
       { 
         headers: { 

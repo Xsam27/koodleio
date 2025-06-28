@@ -5,7 +5,7 @@ import { MessageCircle, X, MinusCircle, BrainCircuit, ChevronDown, ChevronUp, Se
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { StarRecord, EarnedBadge } from "@/services/gamificationService";
-import { sendMessageToGeminiSocraticTutor, ConversationMessage } from "@/services/aiService";
+import { sendMessageToGeminiSocraticTutor, ConversationMessage, generateSessionId } from "@/services/aiService";
 import { Spinner } from "@/components/ui/spinner";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
@@ -46,6 +46,7 @@ const AiAssistantBubble: React.FC<AiAssistantBubbleProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [conversationHistory, setConversationHistory] = useState<ConversationMessage[]>([]);
+  const [sessionId] = useState(() => generateSessionId()); // Generate session ID once per component
   const [messages, setMessages] = useState<Message[]>([
     { 
       id: "welcome",
@@ -123,7 +124,8 @@ const AiAssistantBubble: React.FC<AiAssistantBubbleProps> = ({
           },
           conversationHistory,
           undefined, // no lesson context in bubble chat
-          userId
+          userId,
+          sessionId // Pass the session ID for conversation tracking
         );
         
         if (response.error) {

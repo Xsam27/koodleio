@@ -32,6 +32,7 @@ export interface TutorAIResponse {
   response: string;
   conversationId?: string;
   timestamp?: string;
+  responseTime?: number;
   error?: string;
 }
 
@@ -40,6 +41,11 @@ export interface ConversationMessage {
   response: string;
   timestamp: string;
 }
+
+// Generate a unique session ID for tracking conversation sessions
+export const generateSessionId = (): string => {
+  return crypto.randomUUID();
+};
 
 export const sendMessageToGeminiSocraticTutor = async (
   message: string,
@@ -59,7 +65,8 @@ export const sendMessageToGeminiSocraticTutor = async (
     stepTitle: string;
     stepContent: string;
   },
-  userId?: string
+  userId?: string,
+  sessionId?: string
 ): Promise<TutorAIResponse> => {
   try {
     const { data, error } = await supabase.functions.invoke('gemini-socratic-tutor', {
@@ -71,7 +78,8 @@ export const sendMessageToGeminiSocraticTutor = async (
         subject: childInfo.subject || null,
         conversationHistory: conversationHistory || [],
         lessonContext: lessonContext || null,
-        userId: userId || null
+        userId: userId || null,
+        sessionId: sessionId || generateSessionId()
       }
     });
     
@@ -101,4 +109,47 @@ export const sendMessageToTutorAI = async (
   }
 ): Promise<TutorAIResponse> => {
   return sendMessageToGeminiSocraticTutor(message, childInfo);
+};
+
+// Analytics functions for tutor conversations
+export const getTutorAnalytics = async (userId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('tutor_analytics')
+      .select('*')
+      .eq('user_id', userId)
+      .order('conversation_date', { ascending: false });
+    
+    if (error) throw error;
+    
+    return data;
+  } catch (error) {
+    console.error("Error fetching tutor analytics:", error);
+    return [];
+  }
+};
+
+export const getConversationHistory = async (
+  userId: string, 
+  limit: number = 50
+): Promise<ConversationMessage[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('tutor_conversations')
+      .select('user_message, ai_response, created_at')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    
+    if (error) throw error;
+    
+    return data?.map(row => ({
+      message: row.user_message,
+      response: row.ai_response,
+      timestamp: row.created_at
+    })) || [];
+  } catch (error) {
+    console.error("Error fetching conversation history:", error);
+    return [];
+  }
 };

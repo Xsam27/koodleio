@@ -78,6 +78,57 @@ export type Database = {
         }
         Relationships: []
       }
+      tutor_conversations: {
+        Row: {
+          ai_response: string
+          child_name: string
+          conversation_turn: number | null
+          created_at: string
+          id: string
+          key_stage: string | null
+          lesson_context: Json | null
+          message_length: number | null
+          response_length: number | null
+          response_time_ms: number | null
+          session_id: string | null
+          subject: string | null
+          user_id: string
+          user_message: string
+        }
+        Insert: {
+          ai_response: string
+          child_name: string
+          conversation_turn?: number | null
+          created_at?: string
+          id?: string
+          key_stage?: string | null
+          lesson_context?: Json | null
+          message_length?: number | null
+          response_length?: number | null
+          response_time_ms?: number | null
+          session_id?: string | null
+          subject?: string | null
+          user_id: string
+          user_message: string
+        }
+        Update: {
+          ai_response?: string
+          child_name?: string
+          conversation_turn?: number | null
+          created_at?: string
+          id?: string
+          key_stage?: string | null
+          lesson_context?: Json | null
+          message_length?: number | null
+          response_length?: number | null
+          response_time_ms?: number | null
+          session_id?: string | null
+          subject?: string | null
+          user_id?: string
+          user_message?: string
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           created_at: string
@@ -113,7 +164,22 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      tutor_analytics: {
+        Row: {
+          avg_message_length: number | null
+          avg_response_length: number | null
+          avg_response_time: number | null
+          child_name: string | null
+          conversation_date: string | null
+          key_stage: string | null
+          last_conversation: string | null
+          subject: string | null
+          total_conversations: number | null
+          total_sessions: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
